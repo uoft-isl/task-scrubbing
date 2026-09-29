@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1e3765">
+  <meta name="description" content="Task scrubbing reduces visual shortcut learning and restores language following in vision-language-action robot policies.">
+  <title>When Listening Becomes Easier — Task Scrubbing for VLAs</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%231e3765%22/><path d=%22M17 20h8l7 24 7-24h8L36 52h-8z%22 fill=%22%23fff%22/><circle cx=%2249%22 cy=%2216%22 r=%225%22 fill=%22%23007fa3%22/></svg>">
+  <link rel="stylesheet" href="styles.css?v=7">
+  <script src="app.js?v=7" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" id="top">
+    <nav class="nav shell" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="When Listening Becomes Easier, home">
+        <span class="brand-mark" aria-hidden="true">W</span>
+        <span class="brand-text">Task Scrubbing</span>
+      </a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span>
+        <span class="sr-only">Toggle navigation</span>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+        <a href="#rollouts">Rollouts</a>
+        <a class="nav-cta" href="paper.pdf">Paper <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> Vision–language–action policies</p>
+        <h1>When Listening<br><em>Becomes Easier</em></h1>
+        <p class="hero-subtitle">Scrubbing Visual Cues for Shortcut-Free VLAs</p>
+        <p class="hero-lede">Robot policies can quietly ignore language and act on irrelevant visual cues. Task scrubbing makes instructions the easier signal to follow.</p>
+        <!-- <p class="author-note">Author information omitted for anonymous review</p> -->
+        <div class="hero-actions">
+          <a class="button button-primary" href="#video">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            Watch video
+          </a>
+          <a class="button button-secondary" href="paper.pdf">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 2v6h6M9 13h8M9 17h8"/></svg>
+            Read paper
+          </a>
+        </div>
+        <div class="hero-facts" aria-label="Project scope">
+          <span><strong>3</strong> benchmarks</span>
+          <span><strong>3</strong> visual cues</span>
+          <span><strong>6+</strong> VLA variants</span>
+        </div>
+      </div>
+
+      <div class="hero-visual" aria-label="When the instruction says move left but the visual cue points right, the baseline follows the cue and the task-scrubbed policy follows the instruction.">
+        <p class="concept-kicker">The Issue</p>
+        <p class="concept-title">The instruction and the visual cue disagree during rollouts.</p>
+        <div class="concept-signals">
+          <div class="concept-signal concept-language">
+            <span>Language</span>
+            <strong>Move the cube left</strong>
+          </div>
+          <span class="concept-vs" aria-hidden="true">≠</span>
+          <div class="concept-signal concept-vision">
+            <span>Visual cue</span>
+            <strong>Cube color → right</strong>
+          </div>
+        </div>
+        <div class="concept-split">
+          <article class="concept-policy concept-fail">
+            <span>Baseline</span>
+            <p>Follows the <em>visual cue</em></p>
+            <div class="concept-track" aria-hidden="true">
+              <b class="cube"></b>
+              <i class="arrow-right"></i>
+            </div>
+            <small>Wrong action</small>
+          </article>
+          <article class="concept-policy concept-pass">
+            <span>Task-scrubbed</span>
+            <p>Follows the <em>instruction</em></p>
+            <div class="concept-track" aria-hidden="true">
+              <i class="arrow-left"></i>
+              <b class="cube"></b>
+            </div>
+            <small>Correct action</small>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="statement">
+      <div class="shell statement-grid">
+        <p class="section-index">01 / Problem</p>
+        <div>
+          <p class="statement-lead">High task success can hide the wrong decision rule.</p>
+          <p>When camera angle, background, or object color correlates with a task during training, a VLA may use that cue as a substitute for the instruction. Evaluate using the training setup and everything works but cross the cue at test time and the policy performs the cue-consistent task—not the requested one.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell" id="overview">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow"><span></span> The shortcut test</p>
+          <h2>Cross the cue.<br>Reveal the policy.</h2>
+        </div>
+        <p>Training contains aligned task–cue pairs. Out-of-distribution evaluation swaps those cues while keeping the instruction fixed, separating genuine language following from visual shortcut behavior.</p>
+      </div>
+      <figure class="paper-figure overview-figure reveal">
+        <img src="assets/figures/shortcut-concept.png" alt="Training task and visual cue pairs, followed by crossed evaluation comparing a baseline model that follows the visual cue with a task-scrubbed model that follows language." loading="lazy">
+        <figcaption><span>Figure 1.</span> Visual shortcut-learning setup used throughout the paper.</figcaption>
+      </figure>
+      <div class="contribution-grid">
+        <article>
+          <span class="contribution-number">01</span>
+          <h3>Architecture matters</h3>
+          <p>Backbone choice strongly changes shortcut susceptibility. Neither model size nor general VLM benchmark performance predicts robustness.</p>
+        </article>
+        <article>
+          <span class="contribution-number">02</span>
+          <h3>Diagnose without rollouts</h3>
+          <p><em>Action margin</em> tracks behavioral shortcut reliance directly from hidden representations, with Kendall τ<sub>b</sub> = 0.83.</p>
+        </article>
+        <article>
+          <span class="contribution-number">03</span>
+          <h3>Reroute toward language</h3>
+          <p>Task scrubbing makes visual task identity unstable during training, so language becomes the reliable basis for action selection.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="video-section section" id="video">
+      <div class="shell">
+        <div class="section-heading section-heading-light">
+          <div>
+            <p class="eyebrow"><span></span> 2:30 supplementary video</p>
+            <h2>See shortcuts—and<br>their correction—in action.</h2>
+          </div>
+          <p>From the mechanism to simulation and the real robot, the video gives a compact walkthrough of the paper.</p>
+        </div>
+        <div class="video-frame reveal">
+          <video id="main-video" controls preload="metadata" poster="assets/video-poster.jpg">
+            <source src="assets/supplementary-video.mp4" type="video/mp4">
+            Your browser does not support HTML video. <a href="assets/supplementary-video.mp4">Download the video</a>.
+          </video>
+        </div>
+        <div class="chapter-row" aria-label="Video chapters">
+          <button type="button" data-time="7.4"><span>00:07</span> Shortcut setup</button>
+          <button type="button" data-time="28.9"><span>00:29</span> Task scrubbing</button>
+          <button type="button" data-time="51.5"><span>00:52</span> Diagnostics</button>
+          <button type="button" data-time="72"><span>01:12</span> LIBERO Results</button>
+          <button type="button" data-time="104"><span>01:44</span> RoboTwin Results</button>
+          <button type="button" data-time="114.5"><span>01:55</span> ALOHA Results</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell" id="method">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow"><span></span> Method</p>
+          <h2>Make the shortcut<br>harder to learn.</h2>
+        </div>
+        <p>Task scrubbing adds a task classifier to projected visual tokens and reverses its gradient into the visual pathway.</p>
+      </div>
+      <div class="method-layout">
+        <figure class="paper-figure method-figure reveal">
+          <img src="assets/figures/task-scrubbing.png" alt="Task scrubbing architecture with a task classifier connected through a gradient reverser to projected visual features." loading="lazy">
+          <figcaption><span>Method.</span> A lightweight adversarial branch is used only during training.</figcaption>
+        </figure>
+        <div class="method-steps">
+          <article>
+            <span>1</span>
+            <div>
+              <h3>Read the visual stream</h3>
+              <p>Mean-pool the projected visual tokens across all camera views and pass them to an auxiliary task classifier.</p>
+            </div>
+          </article>
+          <article>
+            <span>2</span>
+            <div>
+              <h3>Reverse the task signal</h3>
+              <p>The classifier learns task identity normally; gradient reversal makes the visual pathway maximize the same classification loss.</p>
+            </div>
+          </article>
+          <article>
+            <span>3</span>
+            <div>
+              <h3>Let language become stable</h3>
+              <p>Visually encoded task identity keeps shifting, while the instruction remains a direct and reliable signal for the action learner.</p>
+            </div>
+          </article>
+          <div class="equation" aria-label="Total loss equals action loss plus weighted task loss">
+            <span>Training objective</span>
+            <strong>ℒ = ℒ<sub>action</sub> + <i>w</i>ℒ<sub>task</sub></strong>
+          </div>
+        </div>
+      </div>
+      <aside class="method-note">
+        <strong>Task information is not erased.</strong>
+        <p>Post-training probes can still decode task identity from vision. The intervention changes which pathway controls action—not what the camera can represent.</p>
+      </aside>
+    </section>
+
+    <section class="diagnostics section">
+      <div class="shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow"><span></span> Mechanistic evidence</p>
+            <h2>Watch information<br>move through the model.</h2>
+          </div>
+          <p>Two representation-level diagnostics expose whether vision or language is steering the action tokens.</p>
+        </div>
+        <div class="diagnostic-stack">
+          <article class="diagnostic-row reveal">
+            <div class="diagnostic-copy">
+              <p class="card-kicker">Action margin</p>
+              <h3>Predicts shortcut behavior without running the policy.</h3>
+              <p>Action-token states are compared with task- and cue-consistent reference states. The resulting margin closely tracks measured shortcut rate.</p>
+              <!-- <span class="stat-pill">τ<sub>b</sub> = 0.83 · p = 1.35 × 10<sup>−7</sup></span> -->
+            </div>
+            <figure class="diagnostic-figure">
+              <img src="assets/figures/action-margin.png" alt="Scatter plot showing strong correlation between action margin and shortcut rate across models and viewpoint disparities." loading="lazy">
+            </figure>
+          </article>
+          <article class="diagnostic-row reveal">
+            <div class="diagnostic-copy">
+              <p class="card-kicker">Attention knockout</p>
+              <h3>Visual cues pull early. Language can correct late.</h3>
+              <p>Across backbones, task-correlated visual features shift early action representations toward the shortcut. Robust models restore instruction alignment in later layers.</p>
+            </div>
+            <figure class="diagnostic-figure">
+              <img src="assets/figures/layerwise.png" alt="Layerwise action margin curves comparing language and visual information flow through VLA backbones." loading="lazy">
+            </figure>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-section section shell" id="results">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow"><span></span> Results</p>
+          <h2>One intervention.<br>Consistent improvement.</h2>
+        </div>
+        <p>Each benchmark crosses a task-correlated visual cue at evaluation. Select a model to compare its baseline and task-scrubbed performance.</p>
+      </div>
+
+      <div class="headline-results">
+        <article class="result-card result-navy reveal" data-result-card="libero">
+          <div class="result-topline">
+            <span>LIBERO Spatial</span>
+            <label><span class="sr-only">Select LIBERO model</span>
+              <select class="result-select" data-environment="libero">
+                <option value="pi0" selected>π₀</option>
+                <option value="pi05">π₀.₅</option>
+                <option value="smolvla">SmolVLA</option>
+                <option value="smolvla-v1">SmolVLA-V1</option>
+                <option value="smolvla-vlm">SmolVLA-VLM</option>
+                <option value="minivla">MiniVLA</option>
+              </select>
+            </label>
+          </div>
+          <p class="result-label">OOD success</p>
+          <div class="result-delta"><span data-baseline>0%</span><i>→</i><strong data-scrubbed>48%</strong></div>
+          <div class="bar-comparison" aria-label="OOD success improved from 0 to 48 percent">
+            <div class="bar-row"><span>Baseline</span><div class="bar-track"><i data-baseline-bar style="--value: 0%"></i></div></div>
+            <div class="bar-row"><span>Scrubbed</span><div class="bar-track"><i data-scrubbed-bar style="--value: 48%"></i></div></div>
+          </div>
+          <p class="result-foot"><span data-cue>Viewpoint cue</span><br>Shortcut rate: <span data-shortcut>99% → <strong>0%</strong></span><br>ID success: <span data-id>70% → 69%</span></p>
+        </article>
+        <article class="result-card result-cyan reveal" data-result-card="robotwin">
+          <div class="result-topline">
+            <span>RoboTwin 2.0</span>
+            <label><span class="sr-only">Select RoboTwin model</span>
+              <select class="result-select" data-environment="robotwin">
+                <option value="smolvla" selected>SmolVLA</option>
+                <option value="smolvla-v1">SmolVLA-V1</option>
+                <option value="smolvla-vlm">SmolVLA-VLM</option>
+                <option value="pi0">π₀</option>
+                <option value="pi05">π₀.₅</option>
+              </select>
+            </label>
+          </div>
+          <p class="result-label">OOD success</p>
+          <div class="result-delta"><span data-baseline>5%</span><i>→</i><strong data-scrubbed>86%</strong></div>
+          <div class="bar-comparison" aria-label="OOD success improved from 5 to 86 percent">
+            <div class="bar-row"><span>Baseline</span><div class="bar-track"><i data-baseline-bar style="--value: 5%"></i></div></div>
+            <div class="bar-row"><span>Scrubbed</span><div class="bar-track"><i data-scrubbed-bar style="--value: 86%"></i></div></div>
+          </div>
+          <p class="result-foot"><span data-cue>Background cue</span><br>Shortcut rate: <span data-shortcut>0% → <strong>0%</strong></span><br>ID success: <span data-id>98% → 95%</span></p>
+        </article>
+        <article class="result-card result-paper reveal" data-result-card="aloha">
+          <div class="result-topline">
+            <span>Real ALOHA</span>
+            <label><span class="sr-only">Select ALOHA model and cue</span>
+              <select class="result-select" data-environment="aloha">
+                <option value="smolvla-v1-combined" selected>SmolVLA-V1 + background</option>
+                <option value="smolvla-combined">SmolVLA + background</option>
+                <option value="smolvla-v1-color">SmolVLA-V1 · color</option>
+                <option value="smolvla-color">SmolVLA · color</option>
+              </select>
+            </label>
+          </div>
+          <p class="result-label">OOD success</p>
+          <div class="result-delta"><span data-baseline>0%</span><i>→</i><strong data-scrubbed>100%</strong></div>
+          <div class="bar-comparison" aria-label="OOD success improved from 0 to 100 percent">
+            <div class="bar-row"><span>Baseline</span><div class="bar-track"><i data-baseline-bar style="--value: 0%"></i></div></div>
+            <div class="bar-row"><span>Scrubbed</span><div class="bar-track"><i data-scrubbed-bar style="--value: 100%"></i></div></div>
+          </div>
+          <p class="result-foot"><span data-cue>Color + background cues</span><br>Shortcut rate: <span data-shortcut>100% → <strong>0%</strong></span><br>ID success: <span data-id>100% → 97.5%</span></p>
+        </article>
+      </div>
+      <p class="result-caveat">LIBERO and RoboTwin values are means over three seeds. Real-robot values use one seed and 20 trials per task–cue configuration. See the paper for standard deviations and complete results.</p>
+
+      <div class="result-detail">
+        <div>
+          <p class="card-kicker">Routing changes during training</p>
+          <h3>Language gains influence when visual task identity becomes unstable.</h3>
+          <p>Across SmolVLA and π<sub>0</sub> variants, task scrubbing sharply increases <em>language share</em>: the relative pull of instruction-consistent states on the action representation.</p>
+        </div>
+        <figure class="paper-figure reveal">
+          <img src="assets/figures/language-share.png" alt="Training curves showing language share increasing under task scrubbing across multiple VLA models." loading="lazy">
+          <figcaption><span>Language share.</span> Solid curves use task scrubbing; dashed curves are baselines.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="rollout-section section" id="rollouts">
+      <div class="shell">
+        <div class="section-heading section-heading-light">
+          <div>
+            <p class="eyebrow"><span></span> Paired rollouts</p>
+            <h2>Same instruction.<br>Different decision rule.</h2>
+          </div>
+          <p>Compare a baseline and task-scrubbed policy under a crossed visual cue. Videos loop silently and are synchronized when you change benchmarks.</p>
+        </div>
+        <div class="rollout-tabs" role="tablist" aria-label="Rollout benchmark">
+          <button type="button" role="tab" id="tab-libero" aria-controls="panel-libero" aria-selected="true" data-rollout="libero">LIBERO <span>Viewpoint</span></button>
+          <button type="button" role="tab" id="tab-robotwin" aria-controls="panel-robotwin" aria-selected="false" data-rollout="robotwin">RoboTwin <span>Background</span></button>
+          <button type="button" role="tab" id="tab-aloha" aria-controls="panel-aloha" aria-selected="false" data-rollout="aloha">ALOHA <span>Color + scene</span></button>
+        </div>
+
+        <div class="rollout-panel is-active" id="panel-libero" role="tabpanel" aria-labelledby="tab-libero">
+          <div class="rollout-instruction"><span>Instruction</span> “Move the bowl from the wooden cabinet.”</div>
+          <div class="video-pair">
+            <article>
+              <div class="rollout-label"><span>Baseline · π<sub>0</sub></span><strong class="bad">Follows viewpoint cue</strong></div>
+              <video muted loop playsinline preload="metadata"><source src="assets/rollouts/libero-baseline.mp4" type="video/mp4"></video>
+            </article>
+            <article>
+              <div class="rollout-label"><span>Task-scrubbed · π<sub>0</sub></span><strong class="good">Follows language</strong></div>
+              <video muted loop playsinline preload="metadata"><source src="assets/rollouts/libero-scrubbed.mp4" type="video/mp4"></video>
+            </article>
+          </div>
+        </div>
+
+        <div class="rollout-panel" id="panel-robotwin" role="tabpanel" aria-labelledby="tab-robotwin" hidden>
+          <div class="rollout-instruction"><span>Instruction</span> “Put the block on the red mat.”</div>
+          <div class="video-pair">
+            <article>
+              <div class="rollout-label"><span>Baseline · π<sub>0.5</sub></span><strong class="bad">Shortcut action</strong></div>
+              <video muted loop playsinline preload="metadata"><source src="assets/rollouts/robotwin-baseline.mp4" type="video/mp4"></video>
+            </article>
+            <article>
+              <div class="rollout-label"><span>Task-scrubbed · π<sub>0.5</sub></span><strong class="good">Language following</strong></div>
+              <video muted loop playsinline preload="metadata"><source src="assets/rollouts/robotwin-scrubbed.mp4" type="video/mp4"></video>
+            </article>
+          </div>
+        </div>
+
+        <div class="rollout-panel" id="panel-aloha" role="tabpanel" aria-labelledby="tab-aloha" hidden>
+          <div class="rollout-instruction"><span>Instruction</span> “Move the cup to the left.”</div>
+          <div class="video-pair">
+            <article>
+              <div class="rollout-label"><span>Baseline · SmolVLA-V1</span><strong class="bad">Shortcut action</strong></div>
+              <video muted loop playsinline preload="metadata"><source src="assets/rollouts/aloha-baseline.mp4" type="video/mp4"></video>
+            </article>
+            <article>
+              <div class="rollout-label"><span>Task-scrubbed · SmolVLA-V1</span><strong class="good">Language following</strong></div>
+              <video muted loop playsinline preload="metadata"><source src="assets/rollouts/aloha-scrubbed.mp4" type="video/mp4"></video>
+            </article>
+          </div>
+        </div>
+        <button class="pair-play" type="button" aria-pressed="false">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span>Play comparison</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="section shell discussion">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow"><span></span> Takeaway</p>
+          <h2>Robustness is not<br>only a data problem.</h2>
+        </div>
+        <p>Architecture, pretraining, and late-layer language correction all affect whether visual cues control a policy’s actions.</p>
+      </div>
+      <div class="takeaway-quote">
+        <blockquote>“The goal is not to remove vision. It is to stop task-irrelevant cues from becoming the easiest basis for action selection.”</blockquote>
+        <div>
+          <h3>Current limitations</h3>
+          <ul>
+            <li>Requires task labels and a trainable visual pathway or adapter.</li>
+            <li>The adversarial weight is architecture- and setting-specific.</li>
+            <li>Experiments study paired tasks; broader multitask behavior remains open.</li>
+            <li>Some settings show seed variance or reduced in-distribution success.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="resources">
+      <div class="shell">
+        <div class="resource-heading">
+          <p class="eyebrow"><span></span> Resources</p>
+          <h2>Paper and video.</h2>
+        </div>
+        <div class="resource-links">
+          <a href="paper.pdf">
+            <span class="resource-icon">PDF</span>
+            <span><strong>Read the paper</strong><small>Full anonymous manuscript</small></span>
+            <i aria-hidden="true">↗</i>
+          </a>
+          <a href="assets/supplementary-video.mp4">
+            <span class="resource-icon">MP4</span>
+            <span><strong>Download the video</strong><small>2:30 narrated overview</small></span>
+            <i aria-hidden="true">↓</i>
+          </a>
+        </div>
+        <div class="citation-block">
+          <div>
+            <p class="card-kicker">Citation</p>
+          </div>
+          <pre id="citation">@article{anonymous2026listening,
+  title  = {When Listening Becomes Easier: Scrubbing Visual
+            Cues for Shortcut-Free VLAs},
+  author = {Anonymous Authors},
+  year   = {2026}
+}</pre>
+          <button class="copy-button" type="button" data-copy="#citation">Copy BibTeX</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell">
+      <p><strong>When Listening Becomes Easier</strong><br>Scrubbing Visual Cues for Shortcut-Free VLAs</p>
+      <p>Academic project page · 2026</p>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </footer>
+</body>
+</html>
