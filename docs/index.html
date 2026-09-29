@@ -39,7 +39,7 @@
         <p class="eyebrow"><span></span> Vision–language–action policies</p>
         <h1>When Listening<br><em>Becomes Easier</em></h1>
         <p class="hero-subtitle">Scrubbing Visual Cues for Shortcut-Free VLAs</p>
-        <p class="hero-lede">Robot policies can quietly ignore language and act on irrelevant visual cues. Task scrubbing makes instructions the easier signal to follow.</p>
+        <p class="hero-lede">Robot policies can quietly ignore language and act on irrelevant visual cues. Task scrubbing makes VLAs follow the instructions.</p>
         <!-- <p class="author-note">Author information omitted for anonymous review</p> -->
         <div class="hero-actions">
           <a class="button button-primary" href="#video">
@@ -99,7 +99,7 @@
       <div class="shell statement-grid">
         <p class="section-index">01 / Problem</p>
         <div>
-          <p class="statement-lead">High task success can hide the wrong decision rule.</p>
+          <p class="statement-lead">VLAs fall for misleading visual cues during training.</p>
           <p>When camera angle, background, or object color correlates with a task during training, a VLA may use that cue as a substitute for the instruction. Evaluate using the training setup and everything works but cross the cue at test time and the policy performs the cue-consistent task—not the requested one.</p>
         </div>
       </div>
@@ -108,8 +108,8 @@
     <section class="section shell" id="overview">
       <div class="section-heading">
         <div>
-          <p class="eyebrow"><span></span> The shortcut test</p>
-          <h2>Cross the cue.<br>Reveal the policy.</h2>
+          <p class="eyebrow"><span></span>Overview</p>
+          <h2>Visual Shortcut Learning</h2>
         </div>
         <p>Training contains aligned task–cue pairs. Out-of-distribution evaluation swaps those cues while keeping the instruction fixed, separating genuine language following from visual shortcut behavior.</p>
       </div>
@@ -248,7 +248,7 @@
       <div class="section-heading">
         <div>
           <p class="eyebrow"><span></span> Results</p>
-          <h2>One intervention.<br>Consistent improvement.</h2>
+          <h2>Task Scrubbing Boosts OOD Success</h2>
         </div>
         <p>Each benchmark crosses a task-correlated visual cue at evaluation. Select a model to compare its baseline and task-scrubbed performance.</p>
       </div>
@@ -405,7 +405,7 @@
         <p>Architecture, pretraining, and late-layer language correction all affect whether visual cues control a policy’s actions.</p>
       </div>
       <div class="takeaway-quote">
-        <blockquote>“The goal is not to remove vision. It is to stop task-irrelevant cues from becoming the easiest basis for action selection.”</blockquote>
+        <blockquote>The goal is not to remove vision. It is to stop task-irrelevant cues from becoming the easiest basis for action selection.</blockquote>
         <div>
           <h3>Current limitations</h3>
           <ul>
@@ -427,7 +427,7 @@
         <div class="resource-links">
           <a href="paper.pdf">
             <span class="resource-icon">PDF</span>
-            <span><strong>Read the paper</strong><small>Full anonymous manuscript</small></span>
+            <span><strong>Read the paper</strong><small>Full manuscript</small></span>
             <i aria-hidden="true">↗</i>
           </a>
           <a href="assets/supplementary-video.mp4">
@@ -455,7 +455,7 @@
   <footer>
     <div class="shell">
       <p><strong>When Listening Becomes Easier</strong><br>Scrubbing Visual Cues for Shortcut-Free VLAs</p>
-      <p>Academic project page · 2026</p>
+      <p>TISL · 2026</p>
       <a href="#top">Back to top ↑</a>
     </div>
   </footer>
