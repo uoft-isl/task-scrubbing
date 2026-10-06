@@ -37,7 +37,7 @@
     <section class="hero shell">
       <div class="hero-copy">
         <p class="eyebrow"><span></span> Vision–language–action policies</p>
-        <h1>When Listening<br><em>Becomes Easier</em></h1>
+        <h1>When Listening <em>Becomes Easier</em></h1>
         <p class="hero-subtitle">Scrubbing Visual Cues for Shortcut-Free VLAs</p>
         <p class="hero-lede">Robot policies can quietly ignore language and act on irrelevant visual cues. Task scrubbing makes VLAs follow the instructions.</p>
         <p class="author-note">
@@ -64,7 +64,7 @@
         </div>
       </div>
 
-      <div class="hero-visual" aria-label="When the instruction says move left but the visual cue points right, the baseline follows the cue and the task-scrubbed policy follows the instruction.">
+      <!-- <div class="hero-visual" aria-label="When the instruction says move left but the visual cue points right, the baseline follows the cue and the task-scrubbed policy follows the instruction.">
         <p class="concept-kicker">The Issue</p>
         <p class="concept-title">The instruction and the visual cue disagree during rollouts.</p>
         <div class="concept-signals">
@@ -98,12 +98,12 @@
             <small>Correct action</small>
           </article>
         </div>
-      </div>
+      </div> -->
     </section>
 
     <section class="statement">
       <div class="shell statement-grid">
-        <p class="section-index">01 / Problem</p>
+        <p class="eyebrow statement-eyebrow"><span></span>Problem</p>
         <div>
           <p class="statement-lead">VLAs fall for misleading visual cues during training.</p>
           <p>When camera angle, background, or object color correlates with a task during training, a VLA may use that cue as a substitute for the instruction. Evaluate using the training setup and everything works but cross the cue at test time and the policy performs the cue-consistent task—not the requested one.</p>
@@ -344,7 +344,7 @@
         <div class="section-heading section-heading-light">
           <div>
             <p class="eyebrow"><span></span> Paired rollouts</p>
-            <h2>Same instruction.<br>Different decision rule.</h2>
+            <h2>No more shortcuts.</h2>
           </div>
           <p>Compare a baseline and task-scrubbed policy under a crossed visual cue. Videos loop silently and are synchronized when you change benchmarks.</p>
         </div>
